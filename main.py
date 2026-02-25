@@ -9,7 +9,7 @@ intents = nextcord.Intents.default()
 intents.members = True  
 intents.message_content = True 
 
-activity = nextcord.Game(name="Try /startworkout")
+activity = nextcord.Game(name="YOLO /startworkout")
 
 bot = commands.Bot(
     intents=intents, 
