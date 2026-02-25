@@ -96,7 +96,7 @@ class WorkoutCog(commands.Cog):
     @nextcord.slash_command(name="startworkout", description="Access your level-based training routine")
     async def startworkout(self, interaction: nextcord.Interaction):
         stage, count = await self.get_user_stage(interaction.user.id)
-        day_name = datetime.now().strftime("%A")
+        day_name = datetime.now().strftime("%A")        
         
         view = View()
         options = [
@@ -108,6 +108,15 @@ class WorkoutCog(commands.Cog):
         async def select_callback(itx: nextcord.Interaction):
             path = select.values[0]
             stage_data = ROUTINES[stage][path]
+            
+            if day_name in ["Wednesday", "Sunday"]:
+                embed = nextcord.Embed(
+                    title="🛋️ Rest & Recovery", 
+                    description=f"Today is **{day_name}**. Recovery is where the muscle grows. See you tomorrow!",
+                    color=0x3498db
+                )
+                return await itx.response.send_message(embed=embed, ephemeral=True)
+
             
             if isinstance(stage_data, dict):
                 routine = stage_data.get(day_name)
