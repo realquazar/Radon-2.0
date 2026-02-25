@@ -4,7 +4,6 @@ from nextcord.ui import View, Modal, TextInput, Button
 import motor.motor_asyncio
 import os
 
-# --- MODALS ---
 
 class AddWorkoutModal(Modal):
     def __init__(self, cog, view_ref=None):
@@ -34,7 +33,6 @@ class AddWorkoutModal(Modal):
             file = nextcord.File("assets/armor.jpg", filename="armor.jpg")
             await interaction.response.edit_message(embed=self.view_ref.create_embed(), view=self.view_ref, file=file)
 
-# --- VIEW ---
 
 class CustomWorkoutView(View):
     def __init__(self, user_name, data, cog):
@@ -55,7 +53,7 @@ class CustomWorkoutView(View):
             color=0x3498db,
             description="Your custom-crafted routine. Stay shielded, stay strong."
         )
-        # Point the thumbnail to the attachment name
+        
         embed.set_thumbnail(url="attachment://armor.jpg")
         embed.set_footer(text=f"Page {self.page + 1} of {self.max_pages + 1}")
         
@@ -85,8 +83,7 @@ class CustomWorkoutView(View):
     async def add(self, b, r): await r.response.send_modal(AddWorkoutModal(self.cog, self))
 
     @nextcord.ui.button(label="Delete", style=nextcord.ButtonStyle.danger)
-    async def delete(self, b, r):
-        # Simple deletion logic placeholder (same as previous)
+    async def delete(self, b, r):        
         pass 
 
     @nextcord.ui.button(label="Clear All", style=nextcord.ButtonStyle.danger)
@@ -96,7 +93,6 @@ class CustomWorkoutView(View):
         file = nextcord.File("assets/armor.jpg", filename="armor.jpg")
         await r.response.edit_message(embed=self.create_embed(), view=self, file=file)
 
-# --- COG ---
 
 class CustomWorkoutCog(commands.Cog):
     def __init__(self, bot):
@@ -108,8 +104,7 @@ class CustomWorkoutCog(commands.Cog):
     async def myworkout(self, interaction: nextcord.Interaction):
         user_data = await self.collection.find_one({"_id": interaction.user.id})
         data = user_data.get("workouts", []) if user_data else []
-        
-        # We must load the file from the assets folder
+                
         file = nextcord.File("assets/armor.jpg", filename="armor.jpg")
         view = CustomWorkoutView(interaction.user.display_name, data, self)
         

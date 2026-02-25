@@ -5,7 +5,6 @@ import motor.motor_asyncio
 import os
 from datetime import datetime
 
-# --- EXERCISE DATABASE ---
 ROUTINES = {
     "Beginner": {
         "Gym": [("Pushups", "3x10"), ("Bicep curls", "3x10"), ("Lateral raises", "3x10"), ("Crunches", "3x10")],
@@ -78,8 +77,7 @@ class WorkoutCog(commands.Cog):
             description="Follow this routine to ensure balanced muscle recovery and maximum gains.",
             color=0x3498db
         )
-
-        # Using the specific split you requested
+        
         schedule_text = (
             "**Monday:** Arms + Chest\n"
             "**Tuesday:** Arms + Chest\n"
@@ -110,8 +108,7 @@ class WorkoutCog(commands.Cog):
         async def select_callback(itx: nextcord.Interaction):
             path = select.values[0]
             stage_data = ROUTINES[stage][path]
-
-            # Handle Split logic for Int/Hard, fixed logic for Beginner
+            
             if isinstance(stage_data, dict):
                 routine = stage_data.get(day_name)
             else:
@@ -123,16 +120,14 @@ class WorkoutCog(commands.Cog):
             if routine == "Rest Day":
                 embed.description = "🛋️ **Rest Day!** Recovery is where the muscle grows. See you tomorrow!"
                 return await itx.response.send_message(embed=embed, ephemeral=True)
-
-            # Add mandatory warm-up for higher stages
+            
             if stage in ["Intermediate", "Hard"]:
                 embed.add_field(name="🧩 Warm-up", value="└ Stretches (5-10 mins)", inline=False)
 
             # Populate exercises
             for exercise, sets in routine:
                 embed.add_field(name=f"🧩 **{exercise}**", value=f"└ {sets}", inline=False)
-            
-            # --- Completion Logic ---
+                        
             finish_view = View()
             finish_button = Button(label="Complete Workout", style=nextcord.ButtonStyle.green, emoji="✅")
 
@@ -142,8 +137,7 @@ class WorkoutCog(commands.Cog):
                     {"$inc": {"workout_count": 1}}, 
                     upsert=True
                 )
-                
-                # Check for Level Up after increment
+                                
                 new_stage, new_count = await self.get_user_stage(f_itx.user.id)
                 
                 if new_stage != stage:
@@ -161,8 +155,6 @@ class WorkoutCog(commands.Cog):
         select.callback = select_callback
         view.add_item(select)
         await interaction.response.send_message("Choose your focus for today:", view=view, ephemeral=True)
-
-
 
 
 def setup(bot):

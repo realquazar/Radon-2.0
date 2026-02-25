@@ -5,22 +5,20 @@ from nextcord import Interaction, SlashOption
 class ModerationCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-    # 1. PURGE (Delete Messages)
+    
     @nextcord.slash_command(name="purge", description="Delete a specific number of messages")
     async def purge(
         self, 
         interaction: Interaction, 
         amount: int = SlashOption(description="Number of messages to delete", min_value=1, max_value=100)
     ):
-        # Permission Check
+        
         if not interaction.user.guild_permissions.manage_messages:
             return await interaction.response.send_message("❌ You don't have permission to manage messages!", ephemeral=True)
 
         await interaction.channel.purge(limit=amount)
         await interaction.response.send_message(f"🧹 Deleted `{amount}` messages.", ephemeral=True)
-
-    # 2. KICK
+    
     @nextcord.slash_command(name="kick", description="Kick a member from the server")
     async def kick(
         self, 
@@ -42,8 +40,7 @@ class ModerationCog(commands.Cog):
         embed.add_field(name="Reason", value=reason, inline=False)
         
         await interaction.response.send_message(embed=embed)
-
-    # 3. BAN
+    
     @nextcord.slash_command(name="ban", description="Ban a member from the server")
     async def ban(
         self, 
@@ -65,8 +62,7 @@ class ModerationCog(commands.Cog):
         embed.add_field(name="Reason", value=reason, inline=False)
         
         await interaction.response.send_message(embed=embed)
-
-    # 4. UNBAN
+    
     @nextcord.slash_command(name="unban", description="Unban a user by their User ID")
     async def unban(
         self, 

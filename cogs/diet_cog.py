@@ -3,7 +3,6 @@ from nextcord.ext import commands
 from nextcord.ui import View, Select, Button
 import os
 
-# --- DATA ---
 FOOD_DATA = [
     {"name": "Whey Protein", "protein": 80, "calories": 400},
     {"name": "Casein Protein", "protein": 75, "calories": 370},

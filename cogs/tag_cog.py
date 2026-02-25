@@ -15,8 +15,7 @@ class TagCog(commands.Cog):
     @nextcord.slash_command(name="tag", description="Manage server tags")
     async def tag(self, interaction: Interaction):
         pass
-
-    # 1. CREATE TAG
+    
     @tag.subcommand(name="create", description="Create a new tag")
     async def tag_create(
         self, 
@@ -39,8 +38,7 @@ class TagCog(commands.Cog):
         }
         await self.tags.insert_one(new_tag)
         await interaction.response.send_message(f"✅ Tag `{name}` created successfully!")
-
-    # 2. GET TAG
+    
     @tag.subcommand(name="get", description="Get a tag's content")
     async def tag_get(
         self, 
@@ -54,8 +52,7 @@ class TagCog(commands.Cog):
             return await interaction.response.send_message(f"❌ Tag `{name}` not found.", ephemeral=True)
 
         await interaction.response.send_message(tag_data["content"])
-
-    # 3. DELETE TAG
+    
     @tag.subcommand(name="delete", description="Delete a tag")
     async def tag_delete(
         self, 
@@ -67,16 +64,14 @@ class TagCog(commands.Cog):
 
         if not tag_data:
             return await interaction.response.send_message(f"❌ Tag `{name}` doesn't exist.", ephemeral=True)
-
-        # Permission check: Creator or Moderator
+        
         is_moderator = interaction.user.guild_permissions.manage_messages
         if tag_data["creator_id"] != interaction.user.id and not is_moderator:
             return await interaction.response.send_message("❌ You didn't create this tag and you aren't a moderator!", ephemeral=True)
 
         await self.tags.delete_one({"_id": tag_data["_id"]})
         await interaction.response.send_message(f"🗑️ Tag `{name}` has been deleted.")
-
-    # 4. LIST TAGS
+    
     @tag.subcommand(name="list", description="List all tags in this server")
     async def tag_list(self, interaction: Interaction):
         all_tags = self.tags.find({"guild_id": interaction.guild.id})

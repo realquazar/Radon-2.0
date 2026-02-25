@@ -4,7 +4,6 @@ from nextcord.ui import View, Button
 import random
 import aiohttp
 
-# --- ROCK PAPER SCISSORS LOGIC ---
 class RPSView(View):
     def __init__(self, user):
         super().__init__(timeout=30)
@@ -16,8 +15,7 @@ class RPSView(View):
 
         choices = ["Rock", "Paper", "Scissors"]
         bot_choice = random.choice(choices)
-        
-        # Win/Loss Logic
+                
         if user_choice == bot_choice:
             result = "It's a **Tie**! 🤝"
         elif (user_choice == "Rock" and bot_choice == "Scissors") or \
@@ -43,21 +41,21 @@ class RPSView(View):
     @nextcord.ui.button(label="Scissors", emoji="✂️", style=nextcord.ButtonStyle.gray)
     async def scissors(self, b, i): await self.resolve_game(i, "Scissors")
 
-# --- COG CLASS ---
+
 class FunCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    # 1. ROCK PAPER SCISSORS
     @nextcord.slash_command(name="rps", description="Play Rock Paper Scissors with Radon")
     async def rps(self, interaction: nextcord.Interaction):
         view = RPSView(interaction.user)
         embed = nextcord.Embed(title="Rock Paper Scissors", description="Choose your weapon below!", color=0x3498db)
         await interaction.response.send_message(embed=embed, view=view)
 
-    # 2. MEME
+    
     @nextcord.slash_command(name="meme", description="Radon fetches a fresh meme for you")
     async def meme(self, interaction: nextcord.Interaction):
+        
         async with aiohttp.ClientSession() as session:
             async with session.get("https://meme-api.com/gimme") as resp:
                 if resp.status != 200:
@@ -69,7 +67,7 @@ class FunCog(commands.Cog):
                 embed.set_footer(text=f"From r/{data['subreddit']}")
                 await interaction.response.send_message(embed=embed)
 
-    # 3. 8BALL
+    
     @nextcord.slash_command(name="8ball", description="Ask the magic 8-ball a question")
     async def eightball(self, interaction: nextcord.Interaction, question: str):
         responses = [
@@ -83,7 +81,7 @@ class FunCog(commands.Cog):
         embed.add_field(name="Radon's Answer", value=random.choice(responses), inline=False)
         await interaction.response.send_message(embed=embed)
 
-    # 4. DAD JOKE
+    
     @nextcord.slash_command(name="dad_joke", description="Get a painful dad joke")
     async def dad_joke(self, interaction: nextcord.Interaction):
         async with aiohttp.ClientSession() as session:
