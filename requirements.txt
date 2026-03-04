@@ -3,3 +3,4 @@ motor
 dnspython
 python-dotenv
 aiohttp
+matplotlib
