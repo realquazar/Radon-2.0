@@ -52,10 +52,91 @@ ROUTINES = {
     }
 }
 
+
+class SchedulePaginationView(nextcord.ui.View):
+    def __init__(self, stage, path, routine_data):
+        super().__init__(timeout=120)
+        self.stage = stage
+        self.path = path
+        self.routine_data = routine_data
+        self.page = 0
+        
+    def get_routine_for_day(self, day):
+        """Extracts exercises based on rank structure"""
+        if isinstance(self.routine_data, dict):
+            return self.routine_data.get(day)
+        
+        return self.routine_data
+
+    def create_embed(self):
+        embed = nextcord.Embed(color=0x3498db)
+        embed.set_footer(text=f"Rank: {self.stage} | Type: {self.path} | Page {self.page + 1}/6")
+
+        if self.page == 0:
+            embed.title = "📅 Weekly Training Split"
+            embed.description = (
+                "**Monday:** Arms + Chest\n"
+                "**Tuesday:** Arms + Chest\n"
+                "**Wednesday:** *Rest & Recovery*\n"
+                "**Thursday:** Abs\n"
+                "**Friday:** Abs\n"
+                "**Saturday:** Leg Day\n"
+                "**Sunday:** *Rest & Recovery*"
+            )
+        
+        elif self.page == 1:
+            embed.title = "🏋️‍♀️ Monday & Tuesday: Arms + Chest"
+            
+            exercises = self.get_routine_for_day("Monday")
+            if isinstance(exercises, list):
+                for ex, sets in exercises:
+                    embed.add_field(name=f"🧩 {ex}", value=f"└ {sets}", inline=False)
+            else:
+                embed.description = "🛋️ Rest Day"
+
+        elif self.page == 2: 
+            embed.title = "🛋️ Wednesday: Rest"
+            embed.description = "Recovery is where the muscle grows. Take it easy today!"
+
+        elif self.page == 3:
+            embed.title = "💪 Thursday & Friday: Abs"
+            exercises = self.get_routine_for_day("Thursday")
+            if isinstance(exercises, list):
+                for ex, sets in exercises:
+                    embed.add_field(name=f"🧩 {ex}", value=f"└ {sets}", inline=False)
+            else:
+                embed.description = "🛋️ Rest Day"
+
+        elif self.page == 4:
+            embed.title = "🍗 Saturday: Leg Day"
+            exercises = self.get_routine_for_day("Saturday")
+            if isinstance(exercises, list):
+                for ex, sets in exercises:
+                    embed.add_field(name=f"🧩 {ex}", value=f"└ {sets}", inline=False)
+            else:
+                embed.description = "🛋️ Rest Day"
+
+        elif self.page == 5:
+            embed.title = "🛋️ Sunday: Rest"
+            embed.description = "Prepare your mind and body for the week ahead."
+
+        return embed
+
+    @nextcord.ui.button(label="⬅️", style=nextcord.ButtonStyle.blurple)
+    async def back(self, button, interaction):
+        self.page = max(0, self.page - 1)
+        await interaction.response.edit_message(embed=self.create_embed(), view=self)
+
+    @nextcord.ui.button(label="➡️", style=nextcord.ButtonStyle.blurple)
+    async def forward(self, button, interaction):
+        self.page = min(5, self.page + 1)
+        await interaction.response.edit_message(embed=self.create_embed(), view=self)
+
+
 class WorkoutCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        # Connect to your existing Mongo setup
+        
         self.cluster = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("MONGO_URI"))
         self.db = self.cluster["GymBotDB"]
         self.users = self.db["user_stats"]
@@ -70,33 +151,33 @@ class WorkoutCog(commands.Cog):
         if count >= 10: return "Intermediate", count
         return "Beginner", count
     
-    @nextcord.slash_command(name="schedule", description="View the weekly Gladiator training split")
+    @nextcord.slash_command(name="schedule", description="View the weekly training split details")
     async def schedule(self, interaction: nextcord.Interaction):
-        embed = nextcord.Embed(
-            title="📅 Weekly Training Split",
-            description="Follow this routine to ensure balanced muscle recovery and maximum gains.",
-            color=0x3498db
-        )
+        stage, _ = await self.get_user_stage(interaction.user.id)
         
-        schedule_text = (
-            "**Monday:** Arms + Chest\n"
-            "**Tuesday:** Arms + Chest\n"
-            "**Wednesday:** *Rest & Recovery*\n"
-            "**Thursday:** Abs\n"
-            "**Friday:** Abs\n"
-            "**Saturday:** Leg Day\n"
-            "**Sunday:** *Rest & Recovery*"
-        )
+        view = nextcord.ui.View()
+        options = [
+            nextcord.SelectOption(label="Gym", emoji="🏋️", description="Machines & Weights"),
+            nextcord.SelectOption(label="Calisthenics", emoji="🤸", description="Bodyweight Mastery")
+        ]
+        select = nextcord.ui.Select(placeholder=f"Your Rank: {stage} | Select Type", options=options)
 
-        embed.add_field(name="The Routine", value=schedule_text, inline=False)
-        embed.set_footer(text="Consistency is the only shortcut. See you at the gym!")
-        
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        async def select_callback(itx: nextcord.Interaction):
+            path = select.values[0]
+            routine_data = ROUTINES[stage][path]
+                        
+            pag_view = SchedulePaginationView(stage, path, routine_data)
+            await itx.response.edit_message(content=None, embed=pag_view.create_embed(), view=pag_view)
+
+        select.callback = select_callback
+        view.add_item(select)
+        await interaction.response.send_message("Select a training path to see your specific routine:", view=view, ephemeral=True)
+
 
     @nextcord.slash_command(name="startworkout", description="Access your level-based training routine")
     async def startworkout(self, interaction: nextcord.Interaction):
         stage, count = await self.get_user_stage(interaction.user.id)
-        day_name = datetime.now().strftime("%A")        
+        day_name = datetime.now().strftime("%A")
         
         view = View()
         options = [
@@ -108,15 +189,6 @@ class WorkoutCog(commands.Cog):
         async def select_callback(itx: nextcord.Interaction):
             path = select.values[0]
             stage_data = ROUTINES[stage][path]
-            
-            if day_name in ["Wednesday", "Sunday"]:
-                embed = nextcord.Embed(
-                    title="🛋️ Rest & Recovery", 
-                    description=f"Today is **{day_name}**. Recovery is where the muscle grows. See you tomorrow!",
-                    color=0x3498db
-                )
-                return await itx.response.send_message(embed=embed, ephemeral=True)
-
             
             if isinstance(stage_data, dict):
                 routine = stage_data.get(day_name)
@@ -132,8 +204,7 @@ class WorkoutCog(commands.Cog):
             
             if stage in ["Intermediate", "Hard"]:
                 embed.add_field(name="🧩 Warm-up", value="└ Stretches (5-10 mins)", inline=False)
-
-            # Populate exercises
+            
             for exercise, sets in routine:
                 embed.add_field(name=f"🧩 **{exercise}**", value=f"└ {sets}", inline=False)
                         
@@ -164,7 +235,6 @@ class WorkoutCog(commands.Cog):
         select.callback = select_callback
         view.add_item(select)
         await interaction.response.send_message("Choose your focus for today:", view=view, ephemeral=True)
-
 
 def setup(bot):
     bot.add_cog(WorkoutCog(bot))
