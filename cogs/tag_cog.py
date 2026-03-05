@@ -6,8 +6,7 @@ import os
 
 class TagCog(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot
-        # Using the same MongoDB setup as your other cogs
+        self.bot = bot        
         self.cluster = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("MONGO_URI"))
         self.db = self.cluster["RadonDB"]
         self.tags = self.db["tags"]
@@ -23,8 +22,7 @@ class TagCog(commands.Cog):
         name: str = SlashOption(description="Name of the tag"), 
         content: str = SlashOption(description="What the tag should say")
     ):
-        name = name.lower()
-        # Check if tag exists in this guild
+        name = name.lower()        
         existing = await self.tags.find_one({"guild_id": interaction.guild.id, "tag_name": name})
         
         if existing:

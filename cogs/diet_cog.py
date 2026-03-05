@@ -48,7 +48,7 @@ class DietView(View):
         current_items = self.data[start:end]
 
         embed = nextcord.Embed(title=title, color=color)
-        embed.set_thumbnail(url="attachment://food.png") # Set the local thumbnail
+        embed.set_thumbnail(url="attachment://food.png")
         embed.set_footer(text=f"Page {self.page + 1} of {self.max_pages + 1} | Portions per 100g")
 
         description = ""
@@ -108,8 +108,7 @@ class DietCog(commands.Cog):
             description="Select a sorting method to see the best fuel for your gains.",
             color=0x9B59B6
         )
-        
-        # Initial image for the starting message
+                
         file = nextcord.File("assets/food.png", filename="food.png")
         embed.set_thumbnail(url="attachment://food.png")
         

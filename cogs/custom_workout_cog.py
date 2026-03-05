@@ -15,8 +15,7 @@ class AddWorkoutModal(Modal):
         self.add_item(self.exercise)
         self.add_item(self.reps)
 
-    async def callback(self, interaction: nextcord.Interaction):
-        # Added the 🧩 emoji automatically to the exercise name
+    async def callback(self, interaction: nextcord.Interaction):        
         new_entry = {"exercise": f"🧩 {self.exercise.value}", "reps": self.reps.value}
         await self.cog.collection.update_one(
             {"_id": interaction.user.id}, 
@@ -28,8 +27,7 @@ class AddWorkoutModal(Modal):
             user_data = await self.cog.collection.find_one({"_id": interaction.user.id})
             self.view_ref.data = user_data.get("workouts", []) if user_data else []
             self.view_ref.update_pages()
-            
-            # When updating, we need to send the file again for the thumbnail to persist
+                        
             file = nextcord.File("assets/armor.jpg", filename="armor.jpg")
             await interaction.response.edit_message(embed=self.view_ref.create_embed(), view=self.view_ref, file=file)
 
