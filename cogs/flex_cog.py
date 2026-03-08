@@ -66,20 +66,42 @@ class FlexModal(Modal):
             file = nextcord.File(fp="./assets/knight.png", filename="knight.png")
             await interaction.response.edit_message(embed=self.view_ref.create_embed(), view=self.view_ref, file=file)
         else:
-            await interaction.response.send_message(f"💪 Recorded: {raw_name}!", ephemeral=True)
+            await interaction.response.send_message(f"💪 Recorded: {raw_name}!", ephemeral=True)    
 
 class DeleteModal(Modal):
     def __init__(self, cog, view_ref):
         super().__init__("Delete a Flex")
         self.cog = cog
         self.view_ref = view_ref
-        self.number = TextInput(label="Flex Number", placeholder="e.g. 2")
+                
+        self.number = TextInput(
+            label="Flex Number", 
+            placeholder='e.g. 2 or type "all" to clear everything',
+            min_length=1,
+            max_length=10
+        )
         self.add_item(self.number)
 
     async def callback(self, interaction: nextcord.Interaction):
-        val = self.number.value.strip()
+        val = self.number.value.strip().lower()
+                
+        if val == "all":
+            await self.cog.clear_all_flexes(interaction.user.id)
+            self.view_ref.all_raw_data = []
+            self.view_ref.data = []
+            self.view_ref.update_pages()
+            
+            file = nextcord.File(fp="./assets/knight.png", filename="knight.png")
+            return await interaction.response.edit_message(
+                content="🗑 All flexes have been cleared.",
+                embed=self.view_ref.create_embed(), 
+                view=self.view_ref, 
+                file=file
+            )
+        
         if not val.isdigit():
-            return await interaction.response.send_message("❌ Numbers only!", ephemeral=True)
+            return await interaction.response.send_message('❌ Please enter a number or "all".', ephemeral=True)
+        
         display_idx = int(val) - 1
         if display_idx < 0 or display_idx >= len(self.view_ref.data):
             return await interaction.response.send_message("❌ Invalid number.", ephemeral=True)
@@ -88,13 +110,16 @@ class DeleteModal(Modal):
         if await self.cog.delete_specific_flex(interaction.user.id, target_to_delete):
             user_data = await self.cog.collection.find_one({"_id": interaction.user.id})
             new_raw_data = user_data.get("flexes", []) if user_data else []
+            
             self.view_ref.all_raw_data = new_raw_data
             self.view_ref.data = [f for f in new_raw_data if ("(archived)" in f['exercise']) == self.view_ref.show_archived]
             self.view_ref.update_pages()
+            
             file = nextcord.File(fp="./assets/knight.png", filename="knight.png")
             await interaction.response.edit_message(embed=self.view_ref.create_embed(), view=self.view_ref, file=file)
         else:
             await interaction.response.send_message("❌ Error deleting item.", ephemeral=True)
+
 
 class GraphSelect(nextcord.ui.Select):
     def __init__(self, data, cog):        
@@ -212,6 +237,12 @@ class FlexCog(commands.Cog):
                 await self.collection.update_one({"_id": user_id}, {"$set": {"flexes": new_flexes}})
                 return True
         return False
+    
+    async def clear_all_flexes(self, user_id):        
+        await self.collection.update_one(
+            {"_id": user_id}, 
+            {"$set": {"flexes": []}}
+        )
 
     @nextcord.slash_command(name="flex", description="Show progress log")
     async def flex(self, interaction: nextcord.Interaction):
