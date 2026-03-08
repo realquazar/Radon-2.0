@@ -148,7 +148,7 @@ class GraphSelect(nextcord.ui.Select):
         fig, ax = plt.subplots(figsize=(8, 4))
         stats = [extract_number(f['stat']) for f in history]
         dates = [f.get('graph_date', f.get('timestamp', 'N/A')) for f in history]
-        ax.plot(dates, stats, marker='o', color="#8637DB", linewidth=2)
+        ax.plot(dates, stats, marker='o', color="#8411FF", linewidth=2)
         ax.set_title(f"Progress: {history[-1]['exercise'].replace('(archived)', '').strip()}")
         ax.set_ylabel("Result")
         ax.set_xlabel("Date")
