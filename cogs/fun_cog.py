@@ -50,30 +50,15 @@ class FunCog(commands.Cog):
     async def rps(self, interaction: nextcord.Interaction):
         view = RPSView(interaction.user)
         embed = nextcord.Embed(title="Rock Paper Scissors", description="Choose your weapon below!", color=0x3498db)
-        await interaction.response.send_message(embed=embed, view=view)
-
-    
-    @nextcord.slash_command(name="meme", description="Radon fetches a fresh meme for you")
-    async def meme(self, interaction: nextcord.Interaction):
-        
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://meme-api.com/gimme") as resp:
-                if resp.status != 200:
-                    return await interaction.send("Failed to fetch meme. Try again later.")
-                data = await resp.json()
-                
-                embed = nextcord.Embed(title=data['title'], url=data['postLink'], color=0xf1c40f)
-                embed.set_image(url=data['url'])
-                embed.set_footer(text=f"From r/{data['subreddit']}")
-                await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, view=view)        
 
     
     @nextcord.slash_command(name="8ball", description="Ask the magic 8-ball a question")
     async def eightball(self, interaction: nextcord.Interaction, question: str):
         responses = [
-            "Yes, obviously.", "My sources say... maybe. If you stop being annoying.",
+            "You bet, lad.", "My sources say... maybe. If you stop being annoying.",
             "Ask again when you've gained some muscle.", "Don't count on it, buddy.",
-            "Signs point to yes.", "Cannot predict now, I'm at the gym.",
+            "YEAH!!!.", "Cannot predict now, I'm at the gym.",
             "Outlook not so good.", "Very doubtful.", "Yes, but it'll cost you."
         ]
         embed = nextcord.Embed(title="🎱 The Snarky 8-Ball", color=0x2c3e50)
