@@ -5,7 +5,7 @@ Radon is a multipurpose discord bot specifically designed to help you in your fi
 ---
 
 ### 🛠️ Installation & Setup
-To get the bot running on your local machine or server, ensure you have Python installed and run the following commands to install the necessary dependencies:
+Commands to run:
 ```bash
 pip install nextcord
 pip install matplotlib
